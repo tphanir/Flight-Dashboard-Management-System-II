@@ -72,6 +72,7 @@ FlightPlanNode *READ_FLIGHT_PLAN(FlightPlanNode *root);
 // PRINT FLIGHT PLAN FUNCTIONS
 void PRINT_FLIGHT_PLAN_NODE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_TREE(FlightPlanNode *root);
+void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root);
 
 // SEARCH BUCKET NODE FUNCTIONS
 int BINARY_SEARCH_BUCKET(Bucket data[], TIME target, int start, int end);
@@ -90,9 +91,10 @@ BucketNode *READ_BUCKET(BucketNode *root);
 // PRINT BUCKET FUNCTIONS
 void PRINT_BUCKET_NODE(BucketNode *root);
 void PRINT_BUCKET_TREE(BucketNode *root);
-
+void PRINT_BUCKET_INORDER(BucketNode *root);
 
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);
 BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root);
+void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
 #endif

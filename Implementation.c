@@ -109,7 +109,7 @@ FlightPlanNode *SEARCH_FLIGHT_PLAN_TREE(TIME target, FlightPlanNode *root, int *
         }
         else
         {
-            SEARCH_FLIGHT_PLAN_TREE(target, root->children[*targetPosition], targetPosition);
+            RETURN_VALUE = SEARCH_FLIGHT_PLAN_TREE(target, root->children[*targetPosition], targetPosition);
         }
     }
     return RETURN_VALUE;
@@ -153,7 +153,6 @@ void SPLIT_FLIGHT_PLAN_NODE(FlightPlan median, FlightPlanNode *medianRight, Flig
 
     (*newMedianRight)->count = MAX - medianIndex;
     current->count = medianIndex;
-    //printf("%d %d\n", median.flightID, pos);
 
     if(pos <= MIN)
     {
@@ -260,6 +259,22 @@ void PRINT_FLIGHT_PLAN_TREE(FlightPlanNode *root)
         }
     }
 }
+void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root)
+{
+    if(root != NULL)
+    {
+        for(int i=0; i<root->count; i++)
+        {
+            PRINT_FLIGHT_PLAN_INORDER(root->children[i]);
+            printf("\nFLIGHT ID - %d",root->data[i].flightID);
+            printf("\nDEPARTURE TIME - ");
+            printTime(root->data[i].departure);
+            printf("\nETA %10s - ", "");
+            printTime(root->data[i].ETA);
+            PRINT_FLIGHT_PLAN_INORDER(root->children[i+1]);
+        }
+    }
+}
 
 
 // SEARCH BUCKET NODE FUNCTIONS
@@ -292,6 +307,7 @@ Boolean SEARCH_BUCKET_NODE(TIME target, BucketNode *current, int *pos)
 {
     Boolean RETURN_VALUE= FALSE;
     *pos = BINARY_SEARCH_BUCKET(current->data, target, 0, current->count -1);
+    printf("%d\n", *pos);
     if(timedeff(current->data[*pos].beginningETA,target) == 0)
     {
         RETURN_VALUE= TRUE;
@@ -310,7 +326,7 @@ BucketNode *SEARCH_BUCKET_TREE(TIME target, BucketNode *root, int *targetPositio
         }
         else
         {
-            SEARCH_BUCKET_TREE(target, root->children[*targetPosition], targetPosition);
+            RETURN_VALUE = SEARCH_BUCKET_TREE(target, root->children[*targetPosition], targetPosition);
         }
     }
     return RETURN_VALUE;
@@ -447,7 +463,7 @@ void PRINT_BUCKET_NODE(BucketNode *root)
         printTime(root->data[i].beginningETA);
         printf("\nEND ETA INTERVAL - ");
         printTime(root->data[i].endETA);
-        PRINT_FLIGHT_PLAN_TREE(root->data[i].f);
+        //PRINT_FLIGHT_PLAN_TREE(root->data[i].f);
     }
 }
 void PRINT_BUCKET_TREE(BucketNode *root)
@@ -459,6 +475,25 @@ void PRINT_BUCKET_TREE(BucketNode *root)
         for(int i=0; i<=root->count; i++)
         {
             PRINT_BUCKET_TREE(root->children[i]);
+        }
+    }
+}
+void PRINT_BUCKET_INORDER(BucketNode *root)
+{
+    if(root != NULL)
+    {
+        for(int i=0; i<root->count; i++)
+        {
+            PRINT_BUCKET_INORDER(root->children[i]);
+            printf("\n--------------------------");
+            printf("\nBUCKET ID : %d",root->data[i].bucketID);
+            printf("\nBEG ETA INTERVAL - ");
+            printTime(root->data[i].beginningETA);
+            printf("\nEND ETA INTERVAL - ");
+            printTime(root->data[i].endETA);
+            printf("\n---------------------------");
+            //PRINT_FLIGHT_PLAN_INORDER(root->data[i].f);
+            PRINT_BUCKET_INORDER(root->children[i+1]);
         }
     }
 }
@@ -480,16 +515,16 @@ BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan)
         node.bucketID = random++;
         node.beginningETA.hour = temp.hour;
         node.beginningETA.min = 0;
-        node.endETA.hour = (temp.hour + 1)%24;
+        node.endETA.hour = temp.hour;
         node.endETA.min = 59;
         node.f = NULL;
         node.f = INSERT_FLIGHT_PLAN_TREE(plan, node.f);
         root = INSERT_BUCKET_TREE(node, root);
-
     }
     else
     {
-        root->data[pos].f =  INSERT_FLIGHT_PLAN_TREE(plan, root->data[pos].f);
+        printf("Found\n");
+        current->data[pos].f =  INSERT_FLIGHT_PLAN_TREE(plan, current->data[pos].f);
     }
     return  root;
 }
@@ -506,4 +541,32 @@ BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root)
     }
     fclose(fptr);
     return root;
+}
+void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
+{
+    TIME temp;
+    BucketNode *bucket;
+    FlightPlanNode *flight;
+
+    int pos1, pos2;
+
+    temp.hour = ETA.hour;
+    temp.min = 0;
+
+    bucket = SEARCH_BUCKET_TREE(temp, root, &pos1);
+    if(bucket != NULL)
+    {
+
+        flight = SEARCH_FLIGHT_PLAN_TREE(departureTime, bucket->data[pos1].f, &pos2);
+        if(flight != NULL)
+        {
+            printf("\nBUCKET ID - %d", bucket->data[pos1].bucketID);
+            printf("\nFLIGHT ID - %d",flight->data[pos2].flightID);
+            printf("\nDEPARTURE TIME - ");
+            printTime(flight->data[pos2].departure);
+            printf("\nETA %10s - ", "");
+            printTime(flight->data[pos2].ETA);
+        }
+    }
+
 }
