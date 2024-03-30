@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 typedef enum{FAILURE, SUCCESS} STATUS_CODE;
 typedef enum{FALSE, TRUE} Boolean;
 
@@ -11,12 +12,14 @@ typedef enum{FALSE, TRUE} Boolean;
 #define MAX 4
 #define MIN 2
 
+
 /* TIME structure */
 typedef struct time_tag
 {
     int min;
     int hour;
 } TIME;
+
 
 typedef struct flight_plan_tag
 {
@@ -47,13 +50,16 @@ typedef struct bucket_node_tag
     struct bucket_node_tag *children[M];
 }BucketNode;
 
-// INITIALIZE FUNCTIONS
-void INIT_F_NODE(FlightPlanNode *root);
-void INIT_B_NODE(BucketNode *root);
+
+
 // TIME FUNCTIONS
 int maxtime(TIME A, TIME B);
 int timedeff(TIME A, TIME B);
 void printTime(TIME t);
+
+
+// INITIALIZE FUNCTIONS
+void INIT_F_NODE(FlightPlanNode *root);
 
 // SEARCH FLIGHT PLAN NODE FUNCTIONS
 int BINARY_SEARCH_FLIGHT_PLAN(FlightPlan data[], TIME target, int start, int end);
@@ -61,8 +67,8 @@ Boolean SEARCH_FLIGHT_PLAN_NODE(TIME target, FlightPlanNode *current, int *pos);
 FlightPlanNode *SEARCH_FLIGHT_PLAN_TREE(TIME target, FlightPlanNode *root, int *targetPosition);
 
 // INSERT FLIGHT PLAN NODE FUNCTIONS
-void SPLIT_FLIGHT_PLAN_NODE(FlightPlan median, FlightPlanNode *medianRight, FlightPlanNode *current, int pos, FlightPlan *newMedian, FlightPlanNode **newMedianRight);
 void PUSH_IN_FLIGHT_PLAN(FlightPlan median, FlightPlanNode *medianRight, FlightPlanNode *current, int pos);
+void SPLIT_FLIGHT_PLAN_NODE(FlightPlan median, FlightPlanNode *medianRight, FlightPlanNode *current, int pos, FlightPlan *newMedian, FlightPlanNode **newMedianRight);
 Boolean PUSH_DOWN_FLIGHT_PLAN_NODE(FlightPlan value, FlightPlanNode *current, FlightPlan *median, FlightPlanNode **medianRight);
 FlightPlanNode *INSERT_FLIGHT_PLAN_TREE(FlightPlan value, FlightPlanNode *root);
 
@@ -73,6 +79,9 @@ FlightPlanNode *READ_FLIGHT_PLAN(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_NODE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_TREE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root);
+
+// INITIALIZE FUNCTIONS
+void INIT_B_NODE(BucketNode *root);
 
 // SEARCH BUCKET NODE FUNCTIONS
 int BINARY_SEARCH_BUCKET(Bucket data[], TIME target, int start, int end);
@@ -92,6 +101,7 @@ BucketNode *READ_BUCKET(BucketNode *root);
 void PRINT_BUCKET_NODE(BucketNode *root);
 void PRINT_BUCKET_TREE(BucketNode *root);
 void PRINT_BUCKET_INORDER(BucketNode *root);
+
 
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);

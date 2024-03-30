@@ -1,23 +1,6 @@
 #include "Implementation.h"
 
 static int random = 1;
-// INITIALIZE FUNCTIONS
-void INIT_F_NODE(FlightPlanNode *root)
-{
-    root->count = 0;
-    for(int i=0; i<M; i++)
-    {
-        root->children[i] = NULL;
-    }
-}
-void INIT_B_NODE(BucketNode *root)
-{
-    root->count = 0;
-    for(int i=0; i<M; i++)
-    {
-        root->children[i] = NULL;
-    }
-}
 
 // TIME FUNCTIONS
 int maxtime(TIME A, TIME B)
@@ -59,6 +42,17 @@ int timedeff(TIME A, TIME B)
 void printTime(TIME t)
 {
     printf("%02d : %02d", t.hour, t.min);
+}
+
+
+// INITIALIZE FUNCTIONS
+void INIT_F_NODE(FlightPlanNode *root)
+{
+    root->count = 0;
+    for(int i=0; i<M; i++)
+    {
+        root->children[i] = NULL;
+    }
 }
 
 // SEARCH FLIGHT PLAN NODE FUNCTIONS
@@ -277,6 +271,17 @@ void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root)
 }
 
 
+
+// INITIALIZE FUNCTION
+void INIT_B_NODE(BucketNode *root)
+{
+    root->count = 0;
+    for(int i=0; i<M; i++)
+    {
+        root->children[i] = NULL;
+    }
+}
+
 // SEARCH BUCKET NODE FUNCTIONS
 int BINARY_SEARCH_BUCKET(Bucket data[], TIME target, int start, int end)
 {
@@ -307,7 +312,6 @@ Boolean SEARCH_BUCKET_NODE(TIME target, BucketNode *current, int *pos)
 {
     Boolean RETURN_VALUE= FALSE;
     *pos = BINARY_SEARCH_BUCKET(current->data, target, 0, current->count -1);
-    printf("%d\n", *pos);
     if(timedeff(current->data[*pos].beginningETA,target) == 0)
     {
         RETURN_VALUE= TRUE;
@@ -444,7 +448,7 @@ BucketNode *READ_BUCKET(BucketNode *root)
     {
         Bucket node;
         fscanf(fptr, "%d, %d, %d, %d, %d",
-        &node.bucketID, &node.beginningETA.hour, &node.beginningETA.min, &node.endETA.hour, &node.endETA.min);
+               &node.bucketID, &node.beginningETA.hour, &node.beginningETA.min, &node.endETA.hour, &node.endETA.min);
         node.f = NULL;
         root = INSERT_BUCKET_TREE(node, root);
     }
@@ -492,11 +496,12 @@ void PRINT_BUCKET_INORDER(BucketNode *root)
             printf("\nEND ETA INTERVAL - ");
             printTime(root->data[i].endETA);
             printf("\n---------------------------");
-            //PRINT_FLIGHT_PLAN_INORDER(root->data[i].f);
+            PRINT_FLIGHT_PLAN_INORDER(root->data[i].f);
             PRINT_BUCKET_INORDER(root->children[i+1]);
         }
     }
 }
+
 
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan)
@@ -523,7 +528,6 @@ BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan)
     }
     else
     {
-        printf("Found\n");
         current->data[pos].f =  INSERT_FLIGHT_PLAN_TREE(plan, current->data[pos].f);
     }
     return  root;
@@ -568,5 +572,4 @@ void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
             printTime(flight->data[pos2].ETA);
         }
     }
-
 }
