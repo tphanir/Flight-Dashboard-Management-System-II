@@ -90,4 +90,9 @@ BucketNode *READ_BUCKET(BucketNode *root);
 // PRINT BUCKET FUNCTIONS
 void PRINT_BUCKET_NODE(BucketNode *root);
 void PRINT_BUCKET_TREE(BucketNode *root);
+
+
+// IMPORTANT FUNCTIONS
+BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);
+BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root);
 #endif

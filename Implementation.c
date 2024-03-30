@@ -1,5 +1,6 @@
 #include "Implementation.h"
 
+static int random = 1;
 // INITIALIZE FUNCTIONS
 void INIT_F_NODE(FlightPlanNode *root)
 {
@@ -446,6 +447,7 @@ void PRINT_BUCKET_NODE(BucketNode *root)
         printTime(root->data[i].beginningETA);
         printf("\nEND ETA INTERVAL - ");
         printTime(root->data[i].endETA);
+        PRINT_FLIGHT_PLAN_TREE(root->data[i].f);
     }
 }
 void PRINT_BUCKET_TREE(BucketNode *root)
@@ -459,4 +461,49 @@ void PRINT_BUCKET_TREE(BucketNode *root)
             PRINT_BUCKET_TREE(root->children[i]);
         }
     }
+}
+
+// IMPORTANT FUNCTIONS
+BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan)
+{
+    TIME temp;
+    BucketNode *current;
+    int pos;
+
+    temp.hour = plan.ETA.hour;
+    temp.min = 0;
+
+    current = SEARCH_BUCKET_TREE(temp, root, &pos);
+    if(current == NULL)
+    {
+        Bucket node;
+        node.bucketID = random++;
+        node.beginningETA.hour = temp.hour;
+        node.beginningETA.min = 0;
+        node.endETA.hour = (temp.hour + 1)%24;
+        node.endETA.min = 59;
+        node.f = NULL;
+        node.f = INSERT_FLIGHT_PLAN_TREE(plan, node.f);
+        root = INSERT_BUCKET_TREE(node, root);
+
+    }
+    else
+    {
+        root->data[pos].f =  INSERT_FLIGHT_PLAN_TREE(plan, root->data[pos].f);
+    }
+    return  root;
+}
+BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root)
+{
+    FILE *fptr;
+    fptr = fopen("FlightPlans.dat", "r");
+    while(!feof(fptr))
+    {
+        FlightPlan plan;
+        fscanf(fptr, "%d, %d, %d, %d, %d",
+               &plan.flightID, &plan.departure.hour, &plan.departure.min, &plan.ETA.hour, &plan.ETA.min);
+        root = INSERT_FLIGHT_PLAN_INTO_BUCKET(root, plan);
+    }
+    fclose(fptr);
+    return root;
 }
