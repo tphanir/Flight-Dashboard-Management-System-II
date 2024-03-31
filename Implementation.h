@@ -80,6 +80,8 @@ void PRINT_FLIGHT_PLAN_NODE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_TREE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root);
 
+// GRAPHVIZ
+
 // INITIALIZE FUNCTIONS
 void INIT_B_NODE(BucketNode *root);
 
@@ -106,5 +108,9 @@ void PRINT_BUCKET_INORDER(BucketNode *root);
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);
 BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root);
-void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
+void SEARCH_GIVEN_DEPARTURE(BucketNode *current, TIME departureTime, int *found, FlightPlanNode **node, int *position);
+void SEARCH_GIVEN_ETA(FlightPlanNode *current, int ID, int *found, FlightPlan *plan);
+void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found);
+Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
+
 #endif
