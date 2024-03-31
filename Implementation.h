@@ -80,6 +80,16 @@ void PRINT_FLIGHT_PLAN_NODE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_TREE(FlightPlanNode *root);
 void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root);
 
+// DELETE FLIGHT PLAN FUNCTIONS
+void MOVE_RIGHT_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void MOVE_LEFT_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void COMBINE_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void RESTORE_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void SUCCESSOR_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void REMOVE_FLIGHT_PLAN(FlightPlanNode *current, int pos);
+void REC_DELETE_TREE_FLIGHT_PLAN(FlightPlan target, FlightPlanNode *current);
+FlightPlanNode *DELETE_TREE_FLIGHT_PLAN(FlightPlan target, FlightPlanNode *root);
+
 // GRAPHVIZ
 
 // INITIALIZE FUNCTIONS
@@ -104,6 +114,15 @@ void PRINT_BUCKET_NODE(BucketNode *root);
 void PRINT_BUCKET_TREE(BucketNode *root);
 void PRINT_BUCKET_INORDER(BucketNode *root);
 
+// DELETE BUCKET FUNCTIONS
+void MOVE_RIGHT_BUCKET(BucketNode *current, int pos);
+void MOVE_LEFT_BUCKET(BucketNode *current, int pos);
+void COMBINE_BUCKET(BucketNode *current, int pos);
+void RESTORE_BUCKET(BucketNode *current, int pos);
+void SUCCESSOR_BUCKET(BucketNode *current, int pos);
+void REMOVE_BUCKET(BucketNode *current, int pos);
+void REC_DELETE_TREE_BUCKET(Bucket target, BucketNode *current);
+BucketNode *DELETE_TREE_BUCKET(Bucket target, BucketNode *root);
 
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);

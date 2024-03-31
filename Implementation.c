@@ -270,7 +270,177 @@ void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root)
     }
 }
 
+// DELETE FLIGHT PLAN FUNCTIONS
+void MOVE_RIGHT_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    int c;
+    FlightPlanNode *t;
+    t = current->children[pos];
+    for(c = t->count; c>0; c--)
+    {
+        t->data[c] = t->data[c-1];
+        t->children[c+1] = t->children[c];
+    }
+    t->children[1] = t->children[0];
+    t->count++;
+    t->data[0] = current->data[pos -1];
+    t = current->children[pos - 1];
+    current->data[pos - 1] = t->data[t->count - 1];
+    current->children[pos]->children[0] = t->children[t->count];
+    t->count--;
+}
+void MOVE_LEFT_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    int c;
+    FlightPlanNode *t;
 
+    t=current->children[pos-1];
+    t->count++;
+    t->data[t->count-1] = current->data[pos -1];
+    t->children[t->count] = (current->children[pos])->children[0];
+    t = current->children[pos];
+    current->data[pos-1] = t->data[0];
+    t->children[0] = t->children[1];
+    t->count--;
+    for(c=1; c<=t->count; c++)
+    {
+        t->data[c-1] = t->data[c];
+        t->children[c] = t->children[c+1];
+    }
+}
+void COMBINE_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    int c;
+    FlightPlanNode *right;
+    FlightPlanNode *left;
+    right = current->children[pos];
+    left = current->children[pos-1];
+    left->count++;
+    left->data[left->count-1] = current->data[pos-1];
+    left->children[left->count] = right->children[0];
+    for(c=1; c<=right->count; c++)
+    {
+        left->count++;
+        left->data[left->count -1] = right->data[c-1];
+        left->children[left->count] = right->children[c];
+    }
+    for(c=pos; c<current->count; c++)
+    {
+        current->data[c-1] = current->data[c];
+        current->children[c] = current->children[c+1];
+    }
+
+    current->count--;
+    free(right);
+}
+void RESTORE_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    if(pos == 0)
+    {
+        if(current->children[1]->count > MIN)
+        {
+            MOVE_LEFT_FLIGHT_PLAN(current, 1);
+        }
+        else
+        {
+            COMBINE_FLIGHT_PLAN(current, 1);
+        }
+    }
+    else if(pos == current->count)
+    {
+        if(current->children[pos -1]->count > MIN)
+        {
+            MOVE_RIGHT_FLIGHT_PLAN(current, pos);
+        }
+        else
+        {
+            COMBINE_FLIGHT_PLAN(current, pos);
+        }
+    }
+    else if(current->children[pos - 1]->count > MIN)
+    {
+        MOVE_RIGHT_FLIGHT_PLAN(current, pos);
+    }
+    else if(current->children[pos + 1]->count > MIN)
+    {
+        MOVE_LEFT_FLIGHT_PLAN(current, pos+1);
+    }
+    else
+    {
+        COMBINE_FLIGHT_PLAN(current, pos);
+    }
+}
+void SUCCESSOR_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    FlightPlanNode *leaf;
+    for(leaf = current->children[pos + 1]; leaf->children[0] != NULL; leaf = leaf->children[0])
+    {
+
+    }
+    current->data[pos] = leaf->data[0];
+}
+void REMOVE_FLIGHT_PLAN(FlightPlanNode *current, int pos)
+{
+    int i;
+    for(i=pos; i<current->count - 1; i++)
+    {
+        current->data[i] = current->data[i+1];
+        current->children[i] = current->children[i+1];
+    }
+    current->children[i] = current->children[i+1];
+    current->count--;
+}
+void REC_DELETE_TREE_FLIGHT_PLAN(FlightPlan target, FlightPlanNode *current)
+{
+    int pos;
+    if(current != NULL)
+    {
+        if(SEARCH_FLIGHT_PLAN_NODE(target.departure, current, &pos))
+        {
+            if(current->children[pos] != NULL)
+            {
+                SUCCESSOR_FLIGHT_PLAN(current, pos);
+                REC_DELETE_TREE_FLIGHT_PLAN(current->data[pos], current->children[pos+1]);
+            }
+            else
+            {
+                REMOVE_FLIGHT_PLAN(current, pos);
+            }
+        }
+        else
+        {
+            REC_DELETE_TREE_FLIGHT_PLAN(target, current->children[pos]);
+        }
+
+        if(current->children[pos])
+        {
+            if(current->children[pos]->count < MIN)
+            {
+                RESTORE_FLIGHT_PLAN(current, pos);
+            }
+        }
+        if (pos < current->count && current->children[pos+1])
+        {
+            if(current->children[pos+1]->count < MIN)
+            {
+                RESTORE_FLIGHT_PLAN(current, pos+1);
+            }
+        }
+
+    }
+}
+FlightPlanNode *DELETE_TREE_FLIGHT_PLAN(FlightPlan target, FlightPlanNode *root)
+{
+    FlightPlanNode *oldRoot;
+    REC_DELETE_TREE_FLIGHT_PLAN(target, root);
+    if(root->count == 0)
+    {
+        oldRoot = root;
+        root = root->children[0];
+        free(oldRoot);
+    }
+    return  root;
+}
 
 // INITIALIZE FUNCTION
 void INIT_B_NODE(BucketNode *root)
@@ -502,6 +672,178 @@ void PRINT_BUCKET_INORDER(BucketNode *root)
     }
 }
 
+// DELETE BUCKET FUNCTIONS
+void MOVE_RIGHT_BUCKET(BucketNode *current, int pos)
+{
+    int c;
+    BucketNode *t;
+    t = current->children[pos];
+    for(c = t->count; c>0; c--)
+    {
+        t->data[c] = t->data[c-1];
+        t->children[c+1] = t->children[c];
+    }
+    t->children[1] = t->children[0];
+    t->count++;
+    t->data[0] = current->data[pos -1];
+    t = current->children[pos - 1];
+    current->data[pos - 1] = t->data[t->count - 1];
+    current->children[pos]->children[0] = t->children[t->count];
+    t->count--;
+}
+void MOVE_LEFT_BUCKET(BucketNode *current, int pos)
+{
+    int c;
+    BucketNode *t;
+
+    t=current->children[pos-1];
+    t->count++;
+    t->data[t->count-1] = current->data[pos -1];
+    t->children[t->count] = (current->children[pos])->children[0];
+    t = current->children[pos];
+    current->data[pos-1] = t->data[0];
+    t->children[0] = t->children[1];
+    t->count--;
+    for(c=1; c<=t->count; c++)
+    {
+        t->data[c-1] = t->data[c];
+        t->children[c] = t->children[c+1];
+    }
+}
+void RESTORE_BUCKET(BucketNode *current, int pos)
+{
+    if(pos == 0)
+    {
+        if(current->children[1]->count > MIN)
+        {
+            MOVE_LEFT_BUCKET(current, 1);
+        }
+        else
+        {
+            COMBINE_BUCKET(current, 1);
+        }
+    }
+    else if(pos == current->count)
+    {
+        if(current->children[pos -1]->count > MIN)
+        {
+            MOVE_RIGHT_BUCKET(current, pos);
+        }
+        else
+        {
+            COMBINE_BUCKET(current, pos);
+        }
+    }
+    else if(current->children[pos - 1]->count > MIN)
+    {
+        MOVE_RIGHT_BUCKET(current, pos);
+    }
+    else if(current->children[pos + 1]->count > MIN)
+    {
+        MOVE_LEFT_BUCKET(current, pos+1);
+    }
+    else
+    {
+        COMBINE_BUCKET(current, pos);
+    }
+}
+void COMBINE_BUCKET(BucketNode *current, int pos)
+{
+    int c;
+    BucketNode *right;
+    BucketNode *left;
+    right = current->children[pos];
+    left = current->children[pos-1];
+    left->count++;
+    left->data[left->count-1] = current->data[pos-1];
+    left->children[left->count] = right->children[0];
+    for(c=1; c<=right->count; c++)
+    {
+        left->count++;
+        left->data[left->count -1] = right->data[c-1];
+        left->children[left->count] = right->children[c];
+    }
+    for(c=pos; c<current->count; c++)
+    {
+        current->data[c-1] = current->data[c];
+        current->children[c] = current->children[c+1];
+    }
+
+    current->count--;
+    free(right);
+
+}
+void SUCCESSOR_BUCKET(BucketNode *current, int pos)
+{
+    BucketNode *leaf;
+    for(leaf = current->children[pos + 1]; leaf->children[0] != NULL; leaf = leaf->children[0])
+    {
+
+    }
+    current->data[pos] = leaf->data[0];
+}
+void REMOVE_BUCKET(BucketNode *current, int pos)
+{
+    int i;
+    for(i=pos; i<current->count - 1; i++)
+    {
+        current->data[i] = current->data[i+1];
+        current->children[i] = current->children[i+1];
+    }
+    current->children[i] = current->children[i+1];
+    current->count--;
+}
+void REC_DELETE_TREE_BUCKET(Bucket target, BucketNode *current)
+{
+    int pos;
+    if(current != NULL)
+    {
+        if(SEARCH_BUCKET_NODE(target.beginningETA, current, &pos))
+        {
+            if(current->children[pos] != NULL)
+            {
+                SUCCESSOR_BUCKET(current, pos);
+                REC_DELETE_TREE_BUCKET(current->data[pos], current->children[pos+1]);
+            }
+            else
+            {
+                REMOVE_BUCKET(current, pos);
+            }
+        }
+        else
+        {
+            REC_DELETE_TREE_BUCKET(target, current->children[pos]);
+        }
+
+        if(current->children[pos])
+        {
+            if(current->children[pos]->count < MIN)
+            {
+                RESTORE_BUCKET(current, pos);
+            }
+        }
+        if (pos < current->count && current->children[pos+1])
+        {
+            if(current->children[pos+1]->count < MIN)
+            {
+                RESTORE_BUCKET(current, pos+1);
+            }
+        }
+
+    }
+}
+BucketNode *DELETE_TREE_BUCKET(Bucket target, BucketNode *root)
+{
+    BucketNode *oldRoot;
+    REC_DELETE_TREE_BUCKET(target, root);
+    if(root->count == 0)
+    {
+        oldRoot = root;
+        root = root->children[0];
+        free(oldRoot);
+    }
+    return  root;
+}
 
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan)
