@@ -266,8 +266,8 @@ void PRINT_FLIGHT_PLAN_INORDER(FlightPlanNode *root)
             printTime(root->data[i].departure);
             printf("\nETA %10s - ", "");
             printTime(root->data[i].ETA);
-            PRINT_FLIGHT_PLAN_INORDER(root->children[i+1]);
         }
+        PRINT_FLIGHT_PLAN_INORDER(root->children[root->count]);
     }
 }
 
@@ -437,7 +437,7 @@ FlightPlanNode *DELETE_TREE_FLIGHT_PLAN(FlightPlan target, FlightPlanNode *root)
     if(root->count == 0)
     {
         oldRoot = root;
-        root = root->children[0];
+        root = NULL;
         free(oldRoot);
     }
     return  root;
@@ -668,8 +668,8 @@ void PRINT_BUCKET_INORDER(BucketNode *root)
             printTime(root->data[i].endETA);
             printf("\n---------------------------");
             PRINT_FLIGHT_PLAN_INORDER(root->data[i].f);
-            PRINT_BUCKET_INORDER(root->children[i+1]);
         }
+        PRINT_BUCKET_INORDER(root->children[root->count]);
     }
 }
 
@@ -840,7 +840,7 @@ BucketNode *DELETE_TREE_BUCKET(Bucket target, BucketNode *root)
     if(root->count == 0)
     {
         oldRoot = root;
-        root = root->children[0];
+        root = NULL;
         free(oldRoot);
     }
     return  root;
@@ -1052,7 +1052,49 @@ void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
 
     }
 }
-BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
+void SEARCH_FLIGHT_TIME_INORDER(FlightPlanNode *root, TIME minimum, TIME maximum, int *done)
+{
+    if(root != NULL && *done == 0)
+    {
+        for(int i=0; i<root->count && *done == 0; i++)
+        {
+            SEARCH_FLIGHT_TIME_INORDER(root->children[i], minimum, maximum, done);
+            if(timedeff(minimum, root->data[i].ETA) <= 0 && timedeff(maximum, root->data[i].ETA) >= 0)
+            {
+                printf("\nFLIGHT ID - %d",root->data[i].flightID);
+                printf("\nDEPARTURE TIME - ");
+                printTime(root->data[i].departure);
+                printf("\nETA %10s - ", "");
+                printTime(root->data[i].ETA);
+            }
+        }
+        SEARCH_FLIGHT_TIME_INORDER(root->children[root->count], minimum, maximum, done);
+    }
+}
+void SEARCH_BUCKET_TIME_INORDER(BucketNode *root, TIME minimum, TIME maximum, int *done)
+{
+    if(root != NULL && *done == 0)
+    {
+        for(int i=0; i<root->count && *done == 0; i++)
+        {
+            SEARCH_BUCKET_TIME_INORDER(root->children[i], minimum, maximum, done);
+            if(root->data[i].endETA.hour > maximum.hour)
+            {
+                *done = 1;
+            }
+            if(*done == 0)
+            {
+                SEARCH_FLIGHT_TIME_INORDER(root->data[i].f, minimum, maximum, done);
+            }
+        }
+        SEARCH_BUCKET_TIME_INORDER(root->children[root->count], minimum, maximum, done);
+    }
+}
+void RANGE_SEARCH(BucketNode *root, TIME initial, TIME final)
+{
+
+}
+BucketNode *CANCEL_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
 {
     BucketNode *bucket;
     FlightPlanNode *plan;

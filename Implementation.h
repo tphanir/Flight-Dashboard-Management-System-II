@@ -132,6 +132,8 @@ void SEARCH_GIVEN_ETA(FlightPlanNode *current, int ID, int *found, FlightPlan *p
 void SEARCH_GIVEN_ID_PLAN(FlightPlanNode *root, int ID, FlightPlan *plan, int *found, FlightPlanNode **flight, int *flightPosition);
 void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found, BucketNode **bucket, int *bucketPosition, FlightPlanNode **flight, int *flightPosition);
 void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
-BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
+void SEARCH_FLIGHT_TIME_INORDER(FlightPlanNode *root, TIME minimum, TIME maximum, int *done);
+void SEARCH_BUCKET_TIME_INORDER(BucketNode *root, TIME minimum, TIME maximum, int *done);
+BucketNode *CANCEL_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
 
 #endif

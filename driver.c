@@ -161,14 +161,82 @@ BucketNode *func3(BucketNode *root)
         departure.hour = -1;
         ETA.hour = -1;
     }
-    root = DELETE_PLAN(root, ID, departure, ETA);
+    root = CANCEL_PLAN(root, ID, departure, ETA);
     printf("FLIGHT PLAN deleted successfully.\n");
     SHOW_STATUS(root,ID, departure,ETA);
     return root;
 }
-
-void graphMaker(FILE *fptr, BucketNode *root)
+void func4(BucketNode *root)
 {
+    int done = 0;
+    TIME initial, final;
+
+    printf("Enter INITIAL ETA TIME - ");
+    scanf("%d %d", &initial.hour, &initial.min);
+    printf("Enter FINAL ETA TIME - ");
+    scanf("%d %d", &final.hour, &final.min);
+    if(timedeff(final, initial) >= 0)
+    {
+        printf("Below are FLIGHT PLANS in range  ");
+        printTime(initial);
+        printf(" - ");
+        printTime(final);
+        SEARCH_BUCKET_TIME_INORDER(root, initial, final, &done);
+    }
+    else
+    {
+        printf("\nINVALID TIME INTERVAL ENTERED.\nTry again.\n");
+    }
+
+}
+void FILE_FLIGHT_PLAN(FlightPlanNode *root, FILE *fptr)
+{
+    if(root != NULL)
+    {
+        for(int i=0; i<root->count; i++)
+        {
+            FILE_FLIGHT_PLAN(root->children[i], fptr);
+            fprintf(fptr, "%d, %d, %d, %d, %d\n",
+                    root->data[i].flightID,
+                    root->data[i].departure.hour,
+                    root->data[i].departure.min,
+                    root->data[i].ETA.hour,
+                    root->data[i].ETA.min);
+        }
+        FILE_FLIGHT_PLAN(root->children[root->count], fptr);
+    }
+}
+
+void FILE_BUCKET(BucketNode *root, FILE *fptr)
+{
+    if(root != NULL)
+    {
+        for(int i=0; i<root->count; i++)
+        {
+            FILE_BUCKET(root->children[i], fptr);
+            fprintf(fptr, "%d, %d, %d, %d, %d\n",
+                    root->data[i].bucketID,
+                    root->data[i].beginningETA.hour,
+                    root->data[i].beginningETA.min,
+                    root->data[i].endETA.hour,
+                    root->data[i].endETA.min);
+            FILE_FLIGHT_PLAN(root->data[i].f, fptr);
+            fprintf(fptr, "\n");
+        }
+        FILE_BUCKET(root->children[root->count], fptr);
+    }
+}
+void func5(BucketNode *root)
+{
+    FILE *fptr;
+    fptr = fopen("OUTPUT.txt", "w");
+    FILE_BUCKET(root, fptr);
+    fclose(fptr);
+}
+void graphMaker( BucketNode *root)
+{
+    FILE *fptr = fopen("tree.dot","w");
+
     fprintf(fptr, "digraph G {\n");
     fprintf(fptr, "node [shape=circle];\n");
     generateDOT(root, fptr);
@@ -187,7 +255,8 @@ BucketNode *display(BucketNode *root)
     printf("\n1. INSERT NEW FLIGHT PLAN");
     printf("\n2. SHOW STATUS OF A FLIGHT PLAN");
     printf("\n3. CANCEL FLIGHT PLAN");
-    printf("\n4. EXIT\n");
+    printf("\n4. SHOW FLIGHT PLANS IN RANGE");
+    printf("\n5. EXIT\n");
     printf("\n---------------------------------------------------------\n");
 
     while(!done)
@@ -197,7 +266,7 @@ BucketNode *display(BucketNode *root)
         printf("\n");
         if(input == 1)
         {
-            func1(root);
+            root = func1(root);
         }
         else if(input == 2)
         {
@@ -205,9 +274,13 @@ BucketNode *display(BucketNode *root)
         }
         else if(input == 3)
         {
-            func3(root);
+            root = func3(root);
         }
         else if(input == 4)
+        {
+            func4(root);
+        }
+        else if(input == 5)
         {
             done = 1;
             printf("---------------------------------------------------------\n");
@@ -224,6 +297,7 @@ BucketNode *display(BucketNode *root)
             printf("\n1. INSERT NEW FLIGHT PLAN");
             printf("\n2. SHOW STATUS OF A FLIGHT PLAN");
             printf("\n3. CANCEL FLIGHT PLAN");
+            printf("\n5. SHOW FLIGHT PLANS IN RANGE");
             printf("\n4. EXIT\n");
             printf("\n---------------------------------------------------------\n");
         }
@@ -233,9 +307,8 @@ BucketNode *display(BucketNode *root)
 void main()
 {
     BucketNode  *root = NULL;
-    FILE *fptr = fopen("tree.dot","w");
+    graphMaker(root);
     root = READ_FLIGHT_PLAN_INTO_BUCKET(root);
-
-    graphMaker(fptr, root);
-
+    func5(root);
+    root = display(root);
 }
