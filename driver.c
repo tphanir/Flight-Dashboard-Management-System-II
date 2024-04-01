@@ -256,7 +256,8 @@ BucketNode *display(BucketNode *root)
     printf("\n2. SHOW STATUS OF A FLIGHT PLAN");
     printf("\n3. CANCEL FLIGHT PLAN");
     printf("\n4. SHOW FLIGHT PLANS IN RANGE");
-    printf("\n5. EXIT\n");
+    printf("\n5. WRITE DATA TO FILE");
+    printf("\n6. EXIT\n");
     printf("\n---------------------------------------------------------\n");
 
     while(!done)
@@ -282,6 +283,10 @@ BucketNode *display(BucketNode *root)
         }
         else if(input == 5)
         {
+            func5(root);
+        }
+        else if(input == 6)
+        {
             done = 1;
             printf("---------------------------------------------------------\n");
             printf("%30s\n", "THANK YOU");
@@ -297,8 +302,9 @@ BucketNode *display(BucketNode *root)
             printf("\n1. INSERT NEW FLIGHT PLAN");
             printf("\n2. SHOW STATUS OF A FLIGHT PLAN");
             printf("\n3. CANCEL FLIGHT PLAN");
-            printf("\n5. SHOW FLIGHT PLANS IN RANGE");
-            printf("\n4. EXIT\n");
+            printf("\n4. SHOW FLIGHT PLANS IN RANGE");
+            printf("\n5. WRITE DATA TO FILE");
+            printf("\n6. EXIT\n");
             printf("\n---------------------------------------------------------\n");
         }
     }
