@@ -189,49 +189,59 @@ void func4(BucketNode *root)
     }
 
 }
-void FILE_FLIGHT_PLAN(FlightPlanNode *root, FILE *fptr)
+void FILE_FLIGHT_PLAN(FlightPlanNode *root, FILE *fptr, FILE *fptr2)
 {
     if(root != NULL)
     {
         for(int i=0; i<root->count; i++)
         {
-            FILE_FLIGHT_PLAN(root->children[i], fptr);
+            FILE_FLIGHT_PLAN(root->children[i], fptr, fptr2);
             fprintf(fptr, "%d, %d, %d, %d, %d\n",
                     root->data[i].flightID,
                     root->data[i].departure.hour,
                     root->data[i].departure.min,
                     root->data[i].ETA.hour,
                     root->data[i].ETA.min);
+            fprintf(fptr2, "%d, %d, %d, %d, %d\n",
+                    root->data[i].flightID,
+                    root->data[i].departure.hour,
+                    root->data[i].departure.min,
+                    root->data[i].ETA.hour,
+                    root->data[i].ETA.min);
         }
-        FILE_FLIGHT_PLAN(root->children[root->count], fptr);
+
+        FILE_FLIGHT_PLAN(root->children[root->count], fptr,fptr2);
     }
 }
 
-void FILE_BUCKET(BucketNode *root, FILE *fptr)
+void FILE_BUCKET(BucketNode *root, FILE *fptr, FILE *fptr2)
 {
     if(root != NULL)
     {
         for(int i=0; i<root->count; i++)
         {
-            FILE_BUCKET(root->children[i], fptr);
+            FILE_BUCKET(root->children[i], fptr, fptr2);
             fprintf(fptr, "%d, %d, %d, %d, %d\n",
                     root->data[i].bucketID,
                     root->data[i].beginningETA.hour,
                     root->data[i].beginningETA.min,
                     root->data[i].endETA.hour,
                     root->data[i].endETA.min);
-            FILE_FLIGHT_PLAN(root->data[i].f, fptr);
+            FILE_FLIGHT_PLAN(root->data[i].f, fptr,fptr2);
             fprintf(fptr, "\n");
         }
-        FILE_BUCKET(root->children[root->count], fptr);
+        FILE_BUCKET(root->children[root->count], fptr,fptr2);
     }
 }
 void func5(BucketNode *root)
 {
     FILE *fptr;
+    FILE *fptr2;
+    fptr2 = fopen("Data.txt", "w");
     fptr = fopen("OUTPUT.txt", "w");
-    FILE_BUCKET(root, fptr);
+    FILE_BUCKET(root, fptr, fptr2);
     fclose(fptr);
+    fclose(fptr2);
 }
 void graphMaker( BucketNode *root)
 {
@@ -310,11 +320,13 @@ BucketNode *display(BucketNode *root)
     }
     return root;
 }
+
+
 void main()
 {
     BucketNode  *root = NULL;
-    graphMaker(root);
     root = READ_FLIGHT_PLAN_INTO_BUCKET(root);
     func5(root);
     root = display(root);
+    graphMaker(root);
 }
