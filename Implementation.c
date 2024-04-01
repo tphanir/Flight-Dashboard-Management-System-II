@@ -1,6 +1,7 @@
 #include "Implementation.h"
 
 static int random = 1;
+static int random2 = 1;
 
 // TIME FUNCTIONS
 int maxtime(TIME A, TIME B)
@@ -937,6 +938,7 @@ void SEARCH_GIVEN_ID_PLAN(FlightPlanNode *root, int ID, FlightPlan *plan, int *f
             {
                 *found = 1;
                 *plan = root->data[i];
+                *flight = root;
                 *flightPosition = i;
             }
             SEARCH_GIVEN_ID_PLAN(root->children[i+1], ID, plan, found, flight, flightPosition);
@@ -951,12 +953,6 @@ void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found, Buc
         {
             SEARCH_GIVEN_ID(root->children[i], ID, plan, found, bucket, bucketPosition, flight, flightPosition);
             SEARCH_GIVEN_ID_PLAN(root->data[i].f, ID, plan, found, flight, flightPosition);
-            if(*found == 1)
-            {
-                *bucket = root;
-                *bucketPosition = i;
-                *flight = root->data[*bucketPosition].f;
-            }
             SEARCH_GIVEN_ID(root->children[i+1], ID, plan, found,bucket,bucketPosition, flight, flightPosition);
         }
     }
@@ -1067,6 +1063,7 @@ BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME
 
     if(departureTime.hour >= 0 && ETA.hour >= 0)
     {
+        printf("yes\n");
         temp.hour = ETA.hour;
         temp.min = 0;
         bucket = SEARCH_BUCKET_TREE(temp, root,&bucketPosition);
@@ -1094,6 +1091,7 @@ BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME
     }
     else if (departureTime.hour >= 0)
     {
+        printf("yes\n");
         SEARCH_GIVEN_DEPARTURE(root, departureTime, &found, &plan, &bucket, &planPosition, &bucketPosition);
         if(found && plan->data[planPosition].flightID == flightID)
         {
@@ -1117,6 +1115,7 @@ BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME
     }
     else if (ETA.hour >= 0)
     {
+        printf("yes\n");
         FlightPlan p;
         temp.hour = ETA.hour;
         temp.min = 0;
@@ -1145,12 +1144,16 @@ BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME
         SEARCH_GIVEN_ID(root, flightID, &p, &found, &bucket, &bucketPosition, &plan, &planPosition);
         if(found)
         {
-
-            bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(p, bucket->data[bucketPosition].f);
-            if(bucket->data[bucketPosition].f == NULL)
+            temp = p.ETA;
+            temp.min = 0;
+            bucket = SEARCH_BUCKET_TREE(temp, root, &bucketPosition);
+            if(bucket != NULL)
             {
-                root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
-
+                bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(p, bucket->data[bucketPosition].f);
+                if(bucket->data[bucketPosition].f == NULL)
+                {
+                    root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
+                }
             }
         }
         else
