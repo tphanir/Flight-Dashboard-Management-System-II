@@ -127,9 +127,11 @@ BucketNode *DELETE_TREE_BUCKET(Bucket target, BucketNode *root);
 // IMPORTANT FUNCTIONS
 BucketNode *INSERT_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root, FlightPlan plan);
 BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root);
-void SEARCH_GIVEN_DEPARTURE(BucketNode *current, TIME departureTime, int *found, FlightPlanNode **node, int *position);
+void SEARCH_GIVEN_DEPARTURE(BucketNode *current, TIME departureTime, int *found, FlightPlanNode **node, BucketNode **bucket, int *planPosition, int *bucketPosition);
 void SEARCH_GIVEN_ETA(FlightPlanNode *current, int ID, int *found, FlightPlan *plan);
-void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found);
-Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
+void SEARCH_GIVEN_ID_PLAN(FlightPlanNode *root, int ID, FlightPlan *plan, int *found, FlightPlanNode **flight, int *flightPosition);
+void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found, BucketNode **bucket, int *bucketPosition, FlightPlanNode **flight, int *flightPosition);
+void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
+BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA);
 
 #endif

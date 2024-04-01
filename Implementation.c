@@ -888,23 +888,25 @@ BucketNode *READ_FLIGHT_PLAN_INTO_BUCKET(BucketNode *root)
     fclose(fptr);
     return root;
 }
-void SEARCH_GIVEN_DEPARTURE(BucketNode *current, TIME departureTime, int *found, FlightPlanNode **node, int *position)
+void SEARCH_GIVEN_DEPARTURE(BucketNode *current, TIME departureTime, int *found, FlightPlanNode **node, BucketNode **bucket, int *planPosition, int *bucketPosition)
 {
     FlightPlanNode *plan;
     int pos;
     if(*found == 0 && current != NULL)
     {
-        for(int i=0; i<current->count; i++)
+        for(int i=0; i<current->count && *found == 0; i++)
         {
-            SEARCH_GIVEN_DEPARTURE(current->children[i], departureTime, found, node, position);
+            SEARCH_GIVEN_DEPARTURE(current->children[i], departureTime, found, node, bucket, planPosition, bucketPosition);
             plan = SEARCH_FLIGHT_PLAN_TREE(departureTime, current->data[i].f, &pos);
             if(plan != NULL)
             {
-                *position = pos;
+                *bucket = current;
+                *planPosition = pos;
                 *found = 1;
+                *bucketPosition = i;
                 *node = plan;
             }
-            SEARCH_GIVEN_DEPARTURE(current->children[i+1], departureTime, found, node, position);
+            SEARCH_GIVEN_DEPARTURE(current->children[i+1], departureTime, found, node, bucket, planPosition, bucketPosition);
         }
     }
 }
@@ -912,7 +914,7 @@ void SEARCH_GIVEN_ETA(FlightPlanNode *current, int ID, int *found, FlightPlan *p
 {
     if(*found == 0 && current != NULL)
     {
-        for(int i=0; i<current->count; i++)
+        for(int i=0; i<current->count && *found == 0; i++)
         {
             SEARCH_GIVEN_ETA(current->children[i], ID, found, plan);
             if(current->data[i].flightID == ID)
@@ -924,35 +926,42 @@ void SEARCH_GIVEN_ETA(FlightPlanNode *current, int ID, int *found, FlightPlan *p
         }
     }
 }
-void SEARCH_GIVEN_ID_PLAN(FlightPlanNode *root, int ID, FlightPlan *plan, int *found)
+void SEARCH_GIVEN_ID_PLAN(FlightPlanNode *root, int ID, FlightPlan *plan, int *found, FlightPlanNode **flight, int *flightPosition)
 {
     if(*found == 0 && root != NULL)
     {
-        for(int i=0; i<root->count; i++)
+        for(int i=0; i<root->count && *found == 0; i++)
         {
-            SEARCH_GIVEN_ID_PLAN(root->children[i], ID, plan, found);
+            SEARCH_GIVEN_ID_PLAN(root->children[i], ID, plan, found, flight, flightPosition);
             if(root->data[i].flightID == ID)
             {
                 *found = 1;
                 *plan = root->data[i];
+                *flightPosition = i;
             }
-            SEARCH_GIVEN_ID_PLAN(root->children[i+1], ID, plan, found);
+            SEARCH_GIVEN_ID_PLAN(root->children[i+1], ID, plan, found, flight, flightPosition);
         }
     }
 }
-void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found)
+void SEARCH_GIVEN_ID(BucketNode *root, int ID, FlightPlan *plan, int *found, BucketNode **bucket, int *bucketPosition, FlightPlanNode **flight, int *flightPosition)
 {
     if(*found == 0 && root != NULL)
     {
-        for(int i=0; i<root->count; i++)
+        for(int i=0; i<root->count && *found == 0; i++)
         {
-            SEARCH_GIVEN_ID(root->children[i], ID, plan, found);
-            SEARCH_GIVEN_ID_PLAN(root->data[i].f, ID, plan, found);
-            SEARCH_GIVEN_ID(root->children[i+1], ID, plan, found);
+            SEARCH_GIVEN_ID(root->children[i], ID, plan, found, bucket, bucketPosition, flight, flightPosition);
+            SEARCH_GIVEN_ID_PLAN(root->data[i].f, ID, plan, found, flight, flightPosition);
+            if(*found == 1)
+            {
+                *bucket = root;
+                *bucketPosition = i;
+                *flight = root->data[*bucketPosition].f;
+            }
+            SEARCH_GIVEN_ID(root->children[i+1], ID, plan, found,bucket,bucketPosition, flight, flightPosition);
         }
     }
 }
-Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
+void SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
 {
     BucketNode *bucket;
     FlightPlanNode *plan;
@@ -961,7 +970,7 @@ Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA
     int found = 0;
     TIME temp;
 
-    if(departureTime.hour >= 0 && ETA.hour >= 1)
+    if(departureTime.hour >= 0 && ETA.hour >= 0)
     {
         temp.hour = ETA.hour;
         temp.min = 0;
@@ -990,7 +999,7 @@ Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA
     }
     else if (departureTime.hour >= 0)
     {
-        SEARCH_GIVEN_DEPARTURE(root, departureTime, &found, &plan, &planPosition);
+        SEARCH_GIVEN_DEPARTURE(root, departureTime, &found, &plan, &bucket,&planPosition, &bucketPosition);
         if(found && plan->data[planPosition].flightID == flightID)
         {
             printf("\nFLIGHT ID - %d",plan->data[planPosition].flightID);
@@ -1031,7 +1040,7 @@ Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA
     else
     {
         FlightPlan p;
-        SEARCH_GIVEN_ID(root, flightID, &p, &found);
+        SEARCH_GIVEN_ID(root, flightID, &p, &found, &bucket, &bucketPosition, &plan, &planPosition);
         if(found)
         {
             printf("\nFLIGHT ID - %d",p.flightID);
@@ -1046,5 +1055,110 @@ Boolean SHOW_STATUS(BucketNode *root, int flightID, TIME departureTime, TIME ETA
         }
 
     }
-    return TRUE;
 }
+BucketNode *DELETE_PLAN(BucketNode *root, int flightID, TIME departureTime, TIME ETA)
+{
+    BucketNode *bucket;
+    FlightPlanNode *plan;
+    int bucketPosition;
+    int planPosition;
+    int found = 0;
+    TIME temp;
+
+    if(departureTime.hour >= 0 && ETA.hour >= 0)
+    {
+        temp.hour = ETA.hour;
+        temp.min = 0;
+        bucket = SEARCH_BUCKET_TREE(temp, root,&bucketPosition);
+
+        if(bucket != NULL)
+        {
+            plan = SEARCH_FLIGHT_PLAN_TREE(departureTime, bucket->data[bucketPosition].f, &planPosition);
+            if(plan != NULL && plan->data[planPosition].flightID == flightID)
+            {
+                bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(plan->data[planPosition], plan);
+                if(bucket->data[bucketPosition].f == NULL)
+                {
+                    root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
+                }
+            }
+            else
+            {
+                printf("\nFLIGHT PLAN NOT FOUND.");
+            }
+        }
+        else
+        {
+            printf("\nFLIGHT PLAN NOT FOUND.");
+        }
+    }
+    else if (departureTime.hour >= 0)
+    {
+        SEARCH_GIVEN_DEPARTURE(root, departureTime, &found, &plan, &bucket, &planPosition, &bucketPosition);
+        if(found && plan->data[planPosition].flightID == flightID)
+        {
+            if(plan != NULL && plan->data[planPosition].flightID == flightID)
+            {
+                bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(plan->data[planPosition], plan);
+                if(bucket->data[bucketPosition].f == NULL)
+                {
+                    root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
+                }
+            }
+            else
+            {
+                printf("\nFLIGHT PLAN NOT FOUND.");
+            }
+        }
+        else
+        {
+            printf("\nFLIGHT PLAN NOT FOUND.");
+        }
+    }
+    else if (ETA.hour >= 0)
+    {
+        FlightPlan p;
+        temp.hour = ETA.hour;
+        temp.min = 0;
+
+        bucket = SEARCH_BUCKET_TREE(temp, root, &bucketPosition);
+        if(bucket != NULL)
+        {
+            SEARCH_GIVEN_ETA(bucket->data[bucketPosition].f, flightID, &found, &p);
+            if(found)
+            {
+                bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(p, bucket->data[bucketPosition].f);
+                if(bucket->data[bucketPosition].f)
+                {
+                    root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
+                }
+            }
+        }
+        else
+        {
+            printf("\nFLIGHT PLAN NOT FOUND.");
+        }
+    }
+    else
+    {
+        FlightPlan p;
+        SEARCH_GIVEN_ID(root, flightID, &p, &found, &bucket, &bucketPosition, &plan, &planPosition);
+        if(found)
+        {
+
+            bucket->data[bucketPosition].f = DELETE_TREE_FLIGHT_PLAN(p, bucket->data[bucketPosition].f);
+            if(bucket->data[bucketPosition].f == NULL)
+            {
+                root = DELETE_TREE_BUCKET(bucket->data[bucketPosition], root);
+
+            }
+        }
+        else
+        {
+            printf("\nFLIGHT PLAN NOT FOUND.");
+        }
+
+    }
+    return  root;
+}
+
